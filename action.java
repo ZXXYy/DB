@@ -93,7 +93,7 @@ public class action implements ActionListener, MouseListener{
 	        { 
 	        	
 	           System.out.println(rs.getInt(1) + " " + rs.getString(2)); 
-	           String temp = rs.getInt(1) +"       " + rs.getString(2)+"     "+ rs.getString(3).substring(0,20)+ "    "
+	           String temp = rs.getInt(1) +"     " + rs.getString(2)+"     "+ rs.getString(3).substring(0,20)+ "     "
 	        		   		+rs.getInt(4)+"     "+rs.getInt(5) + "\r\n";
 	           gui.getListModel().addElement(temp);
 	           
@@ -115,8 +115,9 @@ public class action implements ActionListener, MouseListener{
         if (e.getClickCount() == 2) {
           int index = theList.locationToIndex(e.getPoint());
           if (index >= 1) {
-            Object o = theList.getModel().getElementAt(index);
-            System.out.println("Double-clicked on: " + o.toString());
+            String temp = theList.getModel().getElementAt(index);
+            String [] words = temp.split("     ");
+            System.out.println("Double-clicked on: " + words[0] + " "+words[1]);
             JFrame frame = null;
             int dialogResult = JOptionPane.showConfirmDialog(frame,
             "Would you like to book it","Book a room", JOptionPane.YES_NO_CANCEL_OPTION);
