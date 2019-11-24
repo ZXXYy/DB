@@ -17,6 +17,10 @@ public class action implements ActionListener, MouseListener{
 	private static int listingid;
 	private static Date startDate;
 	private static Date endDate;
+	
+	private static String guestName;
+	private static int numberGuest;
+	
 	static GUI gui;
 	Connection con;
 	
@@ -103,8 +107,37 @@ public class action implements ActionListener, MouseListener{
         	e.printStackTrace();
         }
 	}
-	public static int BookListings(Connection con) {
+	public static int BookListings(Connection con,int listing_id) {
+		String SQL = "select COUNT(*)\r\n" + 
+					 "from Bookings";
+		int id = 0;
+		try {
+			PreparedStatement stmt = con.prepareStatement(SQL); 
+			 ResultSet rs = stmt.executeQuery();
+			 if(rs.next()) id = rs.getInt(1)+1;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 		
+		SQL = "INSERT INTO dbo.Bookings(id,listing_id,guest_name,stay_from,stay_to,number_of_guests)\r\n" + 
+				"VALUES (?,?,?,?,?,?);";
+		try {
+			PreparedStatement stmt = con.prepareStatement(SQL); 
+			
+			stmt.setInt(1, id);
+			stmt.setInt(2, listing_id);
+			stmt.setString(3, guestName);
+			stmt.setDate(4, startDate);
+			stmt.setDate(5, endDate);
+			stmt.setInt(6, numberGuest);
+			
+	        stmt.executeUpdate();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
 		return 1;
 	}
 	
@@ -120,10 +153,33 @@ public class action implements ActionListener, MouseListener{
             System.out.println("Double-clicked on: " + words[0] + " "+words[1]);
             JFrame frame = null;
             int dialogResult = JOptionPane.showConfirmDialog(frame,
-            "Would you like to book it","Book a room", JOptionPane.YES_NO_CANCEL_OPTION);
+            "Would you like to book" + words[0]+"?","Book a room", JOptionPane.YES_NO_CANCEL_OPTION);
             if(dialogResult == JOptionPane.YES_OPTION) {
             	System.out.println("book a room!");
-            	
+            	if(gui.JOptionPaneMultiInput()) {
+        			if(!(gui.nameField.getText().equals("")))
+        				guestName = gui.nameField.getText();
+        			else {
+        				 JOptionPane.showMessageDialog(null, "Please enter your name!",
+        					      "Error", JOptionPane.ERROR_MESSAGE);
+        				 guestName = "";
+        			}
+        			if(gui.numberField.getText().equals("")) {
+        				JOptionPane.showMessageDialog(null, "Please enter guests number",
+      					      "Error", JOptionPane.ERROR_MESSAGE);
+        				numberGuest = -1;
+        			}
+        			else if(Integer.parseInt(gui.numberField.getText())<=0){
+        				 JOptionPane.showMessageDialog(null, "Please enter an valid number",
+        					      "Error", JOptionPane.ERROR_MESSAGE);
+        				 numberGuest = -1;
+        			}
+        			else numberGuest = Integer.parseInt(gui.numberField.getText());
+        		}
+            	if(!guestName.equals("") && numberGuest > 0)
+            		if(BookListings(con,Integer.parseInt(words[0]))==1)
+            			JOptionPane.showMessageDialog(frame, "Booking successes!");
+            		else JOptionPane.showMessageDialog(frame, "Booking fails!");
             }
           }
         }

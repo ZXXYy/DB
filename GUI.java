@@ -18,7 +18,9 @@ public class GUI extends JFrame{
 	JPanel search = new JPanel();
 	DefaultListModel<String> listModel;
 	JScrollPane scrollPane = new JScrollPane();
-	
+	//for message box
+	JTextField nameField = new JTextField(20);
+    JTextField numberField = new JTextField(5);
 	
 	Connection con;
 	//public static void main(String[] args) {
@@ -99,6 +101,19 @@ public class GUI extends JFrame{
 	}
 	public JList<String> getJList(){
 		return jlist;
+	}
+	public boolean JOptionPaneMultiInput() {
+
+	      JPanel myPanel = new JPanel();
+	      myPanel.add(new JLabel("Please enter your name:"));
+	      myPanel.add(nameField);
+	      myPanel.add(Box.createHorizontalStrut(15)); // a spacer
+	      myPanel.add(new JLabel("Please enter the number of guests:"));
+	      myPanel.add(numberField);
+
+	      int result = JOptionPane.showConfirmDialog(null, myPanel, 
+	               "Please Enter Information", JOptionPane.OK_CANCEL_OPTION);
+	      return result == JOptionPane.OK_OPTION;
 	}
 }
 
