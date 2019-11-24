@@ -1,8 +1,9 @@
-package embedded_sql;
+package embedded;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
+import java.util.Vector;
 
 import javax.swing.*;
 
@@ -12,6 +13,12 @@ public class GUI extends JFrame{
 	JButton jb;
 	JTextField jtf[] = new JTextField[5];
 	JComboBox<String> jcb;
+	JSplitPane jsplit;
+	JList<String> jlist;
+	JPanel search = new JPanel();
+	DefaultListModel<String> listModel;
+	JScrollPane scrollPane = new JScrollPane();
+	
 	
 	Connection con;
 	//public static void main(String[] args) {
@@ -52,10 +59,24 @@ public class GUI extends JFrame{
 		
 	
 		for(int i = 0;i<6;i++) {
-			this.add(jp[i]);
+			search.add(jp[i]);
 		}
 		
-		this.setSize(500,300);
+		listModel = new DefaultListModel<String>();
+		listModel.addElement("  id   name   descriptor   number of bedroom   total_price ");
+		jlist = new JList<String>(listModel);
+		scrollPane.setViewportView(jlist);
+		jlist.setLayoutOrientation(JList.VERTICAL);
+		
+		jsplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,search,scrollPane);
+		jsplit.setOneTouchExpandable(true);
+		jsplit.setDividerLocation(300);
+		jsplit.setContinuousLayout(true);
+		jsplit.setSize(700,1000);
+		//this.add(jsplit);
+		this.setContentPane(jsplit);
+		
+		this.setSize(1000,500);
 		this.setTitle("Search Listings");
 		this.setLocation(100,200);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -63,13 +84,21 @@ public class GUI extends JFrame{
 		this.setVisible(true);
 		
 		//jb.addActionListener(this);
-		jb.addActionListener(new action(jtf,jcb,con));
+		action A = new action(this,con);
+		jb.addActionListener(A);
 		jb.setActionCommand("Search");
-		
+		jlist.addMouseListener((MouseListener)A);
 		
 	}
 
-	
-	
+	public JTextField[] getjtf() {
+		return jtf;
+	}
+	public DefaultListModel getListModel(){
+		return listModel;
+	}
+	public JList<String> getJList(){
+		return jlist;
+	}
 }
 
