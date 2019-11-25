@@ -39,10 +39,17 @@ public class GUI extends JFrame{
 	JPanel review = new JPanel();
 	DefaultListModel<String> reviewListModel;
 	JScrollPane reviewScrollPane = new JScrollPane();
-	JScrollPane textScrollPane;
-	JTextArea jta;
+	JTextArea jta = new JTextArea();
+	JScrollPane textScrollPane = new JScrollPane(jta);
+	
+	//for booking
+	JPanel bookJP[] = new JPanel[4];
+	JTextField bookJtf[] = new JTextField[4];
+	JLabel bookJl[] = new JLabel[4];
+	JButton book;
 	
 	Connection con;
+	action A;
 	//public static void main(String[] args) {
 	//	GUI gui = new GUI();
 	//}
@@ -137,6 +144,19 @@ public class GUI extends JFrame{
 		reviewJsplit.setContinuousLayout(true);
 		reviewJsplit.setSize(700,1000);
 		
+		// for booking
+		bookJl[0] = new JLabel("Book a listing for");
+		bookJl[1] = new JLabel("your name");
+		bookJl[2] = new JLabel("guest number");
+		for(int i = 0;i<3;i++) {
+			bookJP[i] = new JPanel();
+			bookJtf[i] = new JTextField(10);
+			bookJP[i].add(bookJl[i]);
+			bookJP[i].add(bookJtf[i]);
+		}
+		book = new JButton("Book");
+		bookJP[2].add(book);
+		
 		// integrate the search listings and write reviews
 		options = new JTabbedPane();
 		options.add("Search listings",jsplit);
@@ -153,7 +173,7 @@ public class GUI extends JFrame{
 		this.setVisible(true);
 		
 		//jb.addActionListener(this);
-		action A = new action(this,con);
+		A = new action(this,con);
 		jb.addActionListener(A);
 		jb.setActionCommand("Search");
 		jlist.addMouseListener((MouseListener)A);
@@ -164,6 +184,10 @@ public class GUI extends JFrame{
 		reviewJlist.addMouseListener(new reviewAction(this,con));
 		reviewJb.addActionListener(A);
 		reviewJb.setActionCommand("Submit");
+		
+		//Book listener
+		book.addActionListener(A);
+		book.setActionCommand("Book");
 	}
 
 	public JTextField[] getjtf() {
@@ -199,20 +223,43 @@ public class GUI extends JFrame{
 	}
 	//unfinished
 	
-	public void AddBookingInfo(int listing_id, Date stay_from, Date stay_to) {
-		JLabel list = new JLabel("listing_id: "+Integer.toString(listing_id));
-		
-	}
-	public void WriteReview(String word) {
+	
+	public void WriteReview(String word, String stay_to) {
+		A.setEndDate(java.sql.Date.valueOf(stay_to));
 		add.add(reviewJP[2]);
 		add.add(reviewJP[1]);
 		add.add(reviewJlb[3]);
 		reviewJtf[2].setText(word);
-		jta = new JTextArea();
-		textScrollPane = new JScrollPane(jta);
 		textScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		review.add(textScrollPane,BorderLayout.CENTER);
 		review.add(reviewJb,BorderLayout.SOUTH);
+		revalidate();
+		repaint();
+	}
+	public void GUISearchBooking() {
+		add.remove(reviewJP[2]);
+		add.remove(reviewJP[1]);
+		add.remove(reviewJlb[3]);
+		review.remove(textScrollPane);
+		review.remove(reviewJb);
+		revalidate();
+		repaint();
+	}
+	public void AddBookingInfo(String word) {
+		search.add(bookJP[0]);
+		search.add(bookJP[1]);
+		search.add(bookJP[2]);
+		bookJtf[0].setText(word);
+		revalidate();
+		repaint();
+	}
+	public void removeBooingInfo() {
+		bookJtf[0].setText("");
+		bookJtf[1].setText("");
+		bookJtf[2].setText("");
+		search.remove(bookJP[0]);
+		search.remove(bookJP[1]);
+		search.remove(bookJP[2]);
 		revalidate();
 		repaint();
 	}

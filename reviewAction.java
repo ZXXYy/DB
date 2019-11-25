@@ -32,8 +32,8 @@ public class reviewAction implements MouseListener{
             "Would you like to review for " + words[0]+"?","Review a listing", JOptionPane.YES_NO_CANCEL_OPTION);
             if(dialogResult == JOptionPane.YES_OPTION) {
             	System.out.println("Review a listing!");
-            	gui.WriteReview(words[0]);
-          
+            	gui.WriteReview(words[0],words[2]);
+            	
             }
           }
         }

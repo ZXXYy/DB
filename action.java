@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.sql.Connection;
 import java.sql.Date;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DateFormat;
@@ -39,6 +40,7 @@ public class action implements ActionListener, MouseListener{
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
 		if(e.getActionCommand().equals("Search")) {
+			gui.removeBooingInfo();
 			if(!(gui.getjtf()[0]).getText().equals(""))
 				minPrice = Integer.parseInt((gui.getjtf()[0]).getText());
 			else minPrice = -1;
@@ -51,26 +53,37 @@ public class action implements ActionListener, MouseListener{
 			if(!(gui.getjtf()[3]).getText().equals(""))
 				startDate = java.sql.Date.valueOf((gui.getjtf()[3]).getText());
 			else {
-				startDate = java.sql.Date.valueOf("0000-00-00");
+				startDate = java.sql.Date.valueOf("1970-01-01");
 				JOptionPane.showMessageDialog(null, "Please enter start date",
 					      "Error", JOptionPane.ERROR_MESSAGE);
+				return;
 			}
 			if(!(gui.getjtf()[4]).getText().equals(""))
 				endDate = java.sql.Date.valueOf((gui.getjtf()[4]).getText());
 			else {
-				endDate = java.sql.Date.valueOf("0000-00-00");
+				endDate = java.sql.Date.valueOf("1970-01-01");
 				JOptionPane.showMessageDialog(null, "Please enter end date",
 					      "Error", JOptionPane.ERROR_MESSAGE);
+				return;
 			}
 			
 			
 			System.out.print("minPrice="+minPrice+"\nmaxPrice="+maxPrice+"\nstartDate="+startDate+"\nnumBedroom="+numBedroom+"\n");
-			//if()
-				SearchListings(con);
-			//else {
-			//	 JOptionPane.showMessageDialog(null, "Input Erro!",
-			//		      "Error", JOptionPane.ERROR_MESSAGE);
-			//}
+			Date date1 = java.sql.Date.valueOf("1970-01-01");
+			long diff = endDate.getTime() - date1.getTime();
+			long diff2 = startDate.getTime() - date1.getTime();
+			if(endDate.getTime() - startDate.getTime()<=0) {
+				JOptionPane.showMessageDialog(null, "Please enter a valid end date and start date!",
+					      "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			else if(diff !=0 && diff2!=0)	{
+				if(SearchListings(con)!=1) {
+					JOptionPane.showMessageDialog(null, "Search erro!",
+						      "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+			}
 			System.out.print("finished!");
 			
 		}
@@ -84,14 +97,17 @@ public class action implements ActionListener, MouseListener{
 				 JOptionPane.showMessageDialog(null, "Please enter your name!",
 					      "Error", JOptionPane.ERROR_MESSAGE);
 				 userName = "";
+				 return;
 			}
 			if(!(userName.equals(""))) {
 				System.out.println(userName);
 				if(SearchBooking(con)!=1) {
 					JOptionPane.showMessageDialog(null, "Search error!",
 						      "Error", JOptionPane.ERROR_MESSAGE);
+					return;
 				}
 			}
+			gui.GUISearchBooking();
 		}
 		else if(e.getActionCommand().equals("Submit")) {
 			if(!(gui.getReviewText().getText()).equals("")) {
@@ -101,6 +117,7 @@ public class action implements ActionListener, MouseListener{
 				 JOptionPane.showMessageDialog(null, "Please write a review!",
 					      "Error", JOptionPane.ERROR_MESSAGE);
 				 reviewText = "";
+				 return;
 			}
 			if(!(gui.getReviewJtf()[1].getText()).equals("")) {
 				currentDate = java.sql.Date.valueOf(gui.getReviewJtf()[1].getText());
@@ -108,18 +125,61 @@ public class action implements ActionListener, MouseListener{
 			else {
 				 JOptionPane.showMessageDialog(null, "Please enter current date!",
 					      "Error", JOptionPane.ERROR_MESSAGE);
-				 currentDate = java.sql.Date.valueOf("0000-00-00");
+				 currentDate = java.sql.Date.valueOf("1970-01-01");
+				 return;
+			}
+			if(currentDate.getTime()<endDate.getTime()) {
+				 JOptionPane.showMessageDialog(null, "Please review after the last booking day!",
+					      "Error", JOptionPane.ERROR_MESSAGE);
+				 currentDate = java.sql.Date.valueOf("1970-01-01");
+				 return;
 			}
 			listingid = Integer.parseInt(gui.getReviewJtf()[2].getText());
-			if(!(reviewText.contentEquals("")) ) {
+			Date d = java.sql.Date.valueOf("1970-01-01");
+			int temp = ((int) currentDate.getTime()-(int)d.getTime());
+			if(!(reviewText.contentEquals("")) && temp!=0) {
 				if(WriteReview(con)!=1) {
 					 JOptionPane.showMessageDialog(null, "Write a review error may due to trigger!",
 						      "Error", JOptionPane.ERROR_MESSAGE);
+					 return;
+				}
+				else {
+					JOptionPane.showMessageDialog(new JFrame(), "successfully reviewed!");
 				}
 			}
 		}
+		else if(e.getActionCommand().equals("Book")) {
+			
+    			if(!(gui.bookJtf[1].getText().equals("")))
+    				guestName = gui.bookJtf[1].getText();
+    			else {
+    				 JOptionPane.showMessageDialog(null, "Please enter your name!",
+    					      "Error", JOptionPane.ERROR_MESSAGE);
+    				 guestName = "";
+    				 return;
+    			}
+    			if(gui.bookJtf[2].getText().equals("")) {
+    				JOptionPane.showMessageDialog(null, "Please enter guests number",
+  					      "Error", JOptionPane.ERROR_MESSAGE);
+    				numberGuest = -1;
+    				return;
+    			}
+    			else if(Integer.parseInt(gui.bookJtf[2].getText())<=0){
+    				 JOptionPane.showMessageDialog(null, "Please enter an valid number",
+    					      "Error", JOptionPane.ERROR_MESSAGE);
+    				 numberGuest = -1;
+    				 return;
+    			}
+    			else numberGuest = Integer.parseInt(gui.bookJtf[2].getText());
+    			if(numberGuest > 0 && !guestName.contentEquals("")) {
+            		System.out.println("BOOK!");
+            		if(BookListings(con,listingid)==1)
+            			JOptionPane.showMessageDialog(new JFrame(), "Booking successes!");
+            		else JOptionPane.showMessageDialog(new JFrame(), "Booking fails!");
+            	}
+    		}
 	}
-	public static void SearchListings(Connection con) {
+	public static int SearchListings(Connection con) {
 		String SQL = 
 				"SELECT L.id, L.name, L.description, L.number_of_bedrooms, sum(C.price)\r\n" + 
 				"FROM dbo.calendar C, dbo.Listings L\r\n" + 
@@ -142,7 +202,7 @@ public class action implements ActionListener, MouseListener{
 			
 			stmt.setDate(1, startDate);
 			stmt.setDate(2, endDate);
-			stmt.setInt(3, endDate.getDate()-startDate.getDate()+1);
+			stmt.setInt(3, (int)TimeUnit.DAYS.convert(endDate.getTime()-startDate.getTime(), TimeUnit.MILLISECONDS)+1);
 			
 			
 	        ResultSet rs = stmt.executeQuery();
@@ -167,7 +227,9 @@ public class action implements ActionListener, MouseListener{
 		}
         catch(Exception e) {
         	e.printStackTrace();
+        	return 0;
         }
+		return 1;
 	}
 	public static int BookListings(Connection con,int listing_id) {
 		String SQL = "select COUNT(*)\r\n" + 
@@ -284,34 +346,11 @@ public class action implements ActionListener, MouseListener{
             System.out.println("Double-clicked on: " + words[0] + " "+words[1]);
             JFrame frame = null;
             int dialogResult = JOptionPane.showConfirmDialog(frame,
-            "Would you like to book" + words[0]+"?","Book a room", JOptionPane.YES_NO_CANCEL_OPTION);
+            "Would you like to book " + words[0]+"?","Book a room", JOptionPane.YES_NO_CANCEL_OPTION);
             if(dialogResult == JOptionPane.YES_OPTION) {
             	System.out.println("book a room!");
-            	
-            	if(gui.JOptionPaneMultiInput()) {
-        			if(!(gui.nameField.getText().equals("")))
-        				guestName = gui.nameField.getText();
-        			else {
-        				 JOptionPane.showMessageDialog(null, "Please enter your name!",
-        					      "Error", JOptionPane.ERROR_MESSAGE);
-        				 guestName = "";
-        			}
-        			if(gui.numberField.getText().equals("")) {
-        				JOptionPane.showMessageDialog(null, "Please enter guests number",
-      					      "Error", JOptionPane.ERROR_MESSAGE);
-        				numberGuest = -1;
-        			}
-        			else if(Integer.parseInt(gui.numberField.getText())<=0){
-        				 JOptionPane.showMessageDialog(null, "Please enter an valid number",
-        					      "Error", JOptionPane.ERROR_MESSAGE);
-        				 numberGuest = -1;
-        			}
-        			else numberGuest = Integer.parseInt(gui.numberField.getText());
-        		}
-            	if(!guestName.equals("") && numberGuest > 0)
-            		if(BookListings(con,Integer.parseInt(words[0]))==1)
-            			JOptionPane.showMessageDialog(frame, "Booking successes!");
-            		else JOptionPane.showMessageDialog(frame, "Booking fails!");
+            	gui.AddBookingInfo(words[0]);
+            	listingid = Integer.parseInt(words[0]);
             }
           }
         }
@@ -337,6 +376,9 @@ public class action implements ActionListener, MouseListener{
 		
 	}
 	
+	public void setEndDate(Date d) {
+		endDate = d;
+	}
 }
 
 
