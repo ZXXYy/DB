@@ -3,13 +3,17 @@ package embedded;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
+import java.sql.Date;
 import java.util.Vector;
 
 import javax.swing.*;
 
 public class GUI extends JFrame{
+	JTabbedPane options;
+	
+	//for search listings
 	JPanel jp[] = new JPanel[6];
-	JLabel jlb[] = new JLabel[5];
+	JLabel jlb[] = new JLabel[6];
 	JButton jb;
 	JTextField jtf[] = new JTextField[5];
 	JComboBox<String> jcb;
@@ -18,9 +22,25 @@ public class GUI extends JFrame{
 	JPanel search = new JPanel();
 	DefaultListModel<String> listModel;
 	JScrollPane scrollPane = new JScrollPane();
+	
 	//for message box
 	JTextField nameField = new JTextField(20);
     JTextField numberField = new JTextField(5);
+    
+    //for write a review
+    JPanel reviewJP[] = new JPanel[3];
+    JPanel add = new JPanel();
+    JLabel reviewJlb[] = new JLabel[4];
+    JButton reviewJb;
+    JButton searchBooking;
+    JTextField reviewJtf[] = new JTextField[3];
+    JSplitPane reviewJsplit;
+	JList<String> reviewJlist;
+	JPanel review = new JPanel();
+	DefaultListModel<String> reviewListModel;
+	JScrollPane reviewScrollPane = new JScrollPane();
+	JScrollPane textScrollPane;
+	JTextArea jta;
 	
 	Connection con;
 	//public static void main(String[] args) {
@@ -29,6 +49,8 @@ public class GUI extends JFrame{
 	
 	public GUI(Connection con) {
 		this.con = con;
+		
+		// for search listings
 		for(int i = 0;i<6;i++) {
 			jp[i] = new JPanel();
 		}
@@ -38,6 +60,7 @@ public class GUI extends JFrame{
 		jlb[2] = new JLabel("number of bedrooms");
 		jlb[3] = new JLabel("Start date");
 		jlb[4] = new JLabel("End date");
+		jlb[5] = new JLabel("Listing_id");
 		
 		jb = new JButton("Search");
 		
@@ -48,7 +71,7 @@ public class GUI extends JFrame{
 		String [] bedroomNum = {"1","2","3","4","5","6","7","8","9"};
 		JComboBox<String> jcb = new JComboBox<String>(bedroomNum);
 		
-		this.setLayout(new GridLayout(6,1));
+		//search.setLayout(new GridLayout(6,1));
 		for(int i = 0;i<5;i++) {
 			jp[i].add(jlb[i]);
 			//if(i<2) jp[i].add(jtf[i]);
@@ -75,8 +98,52 @@ public class GUI extends JFrame{
 		jsplit.setDividerLocation(300);
 		jsplit.setContinuousLayout(true);
 		jsplit.setSize(700,1000);
-		//this.add(jsplit);
-		this.setContentPane(jsplit);
+		
+		// for write reviews
+		reviewJlb[0] = new JLabel("user name");
+		reviewJlb[1] = new JLabel("current date");
+		reviewJlb[3] = new JLabel("review text");
+		reviewJlb[2] = new JLabel("Write a review for");
+		
+		reviewJb = new JButton("submit");
+		searchBooking = new JButton("Search Booking");
+		reviewJtf[0] = new JTextField(20);
+		reviewJtf[1] = new JTextField(15);
+		reviewJtf[2] = new JTextField(20);
+	
+		
+		for(int i = 0;i<3;i++) {
+			reviewJP[i] = new JPanel();
+			reviewJP[i].add(reviewJlb[i]);
+			reviewJP[i].add(reviewJtf[i]);
+		}
+		reviewJP[0].add(searchBooking);
+		review.setLayout(new BorderLayout());
+		add.setLayout(new GridLayout(4,1));
+		add.add(reviewJP[0]);
+		review.add(add,BorderLayout.NORTH);
+		//review.add(searchBooking);
+		
+		reviewListModel = new DefaultListModel<String>();
+		reviewListModel.addElement("  listing_id      stay_from     stay_to      number of guest");
+		reviewJlist = new JList<String>(reviewListModel);
+		reviewScrollPane.setViewportView(reviewJlist);
+		reviewJlist.setLayoutOrientation(JList.VERTICAL);
+		
+		
+		reviewJsplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,review,reviewScrollPane);
+		reviewJsplit.setOneTouchExpandable(true);
+		reviewJsplit.setDividerLocation(500);
+		reviewJsplit.setContinuousLayout(true);
+		reviewJsplit.setSize(700,1000);
+		
+		// integrate the search listings and write reviews
+		options = new JTabbedPane();
+		options.add("Search listings",jsplit);
+		options.add("Write reviews",reviewJsplit);
+		
+		this.setContentPane(options);
+		//this.setContentPane(jsplit);
 		
 		this.setSize(1000,500);
 		this.setTitle("Search Listings");
@@ -91,16 +158,31 @@ public class GUI extends JFrame{
 		jb.setActionCommand("Search");
 		jlist.addMouseListener((MouseListener)A);
 		
+		// write review listener
+		searchBooking.addActionListener(A);
+		searchBooking.setActionCommand("SearchBooking");
+		reviewJlist.addMouseListener(new reviewAction(this,con));
+		reviewJb.addActionListener(A);
+		reviewJb.setActionCommand("Submit");
 	}
 
 	public JTextField[] getjtf() {
 		return jtf;
 	}
-	public DefaultListModel getListModel(){
+	public DefaultListModel<String> getListModel(){
 		return listModel;
+	}
+	public DefaultListModel<String> getReviewListModel(){
+		return reviewListModel;
 	}
 	public JList<String> getJList(){
 		return jlist;
+	}
+	public JTextField[] getReviewJtf() {
+		return reviewJtf;
+	}
+	public JTextArea getReviewText() { 
+		return jta;
 	}
 	public boolean JOptionPaneMultiInput() {
 
@@ -114,6 +196,25 @@ public class GUI extends JFrame{
 	      int result = JOptionPane.showConfirmDialog(null, myPanel, 
 	               "Please Enter Information", JOptionPane.OK_CANCEL_OPTION);
 	      return result == JOptionPane.OK_OPTION;
+	}
+	//unfinished
+	
+	public void AddBookingInfo(int listing_id, Date stay_from, Date stay_to) {
+		JLabel list = new JLabel("listing_id: "+Integer.toString(listing_id));
+		
+	}
+	public void WriteReview(String word) {
+		add.add(reviewJP[2]);
+		add.add(reviewJP[1]);
+		add.add(reviewJlb[3]);
+		reviewJtf[2].setText(word);
+		jta = new JTextArea();
+		textScrollPane = new JScrollPane(jta);
+		textScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		review.add(textScrollPane,BorderLayout.CENTER);
+		review.add(reviewJb,BorderLayout.SOUTH);
+		revalidate();
+		repaint();
 	}
 }
 
