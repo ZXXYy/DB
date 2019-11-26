@@ -34,13 +34,16 @@ public class action implements ActionListener, MouseListener{
 	public action(GUI gui, Connection con) {
 		this.gui = gui;
 		this.con = con;
-		
 	}
+	
+	// actions for different buttons
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
+		//search for listings
 		if(e.getActionCommand().equals("Search")) {
 			gui.removeBooingInfo();
+			//get the search information
 			if(!(gui.getjtf()[0]).getText().equals(""))
 				minPrice = Integer.parseInt((gui.getjtf()[0]).getText());
 			else minPrice = -1;
@@ -67,8 +70,8 @@ public class action implements ActionListener, MouseListener{
 				return;
 			}
 			
-			
 			System.out.print("minPrice="+minPrice+"\nmaxPrice="+maxPrice+"\nstartDate="+startDate+"\nnumBedroom="+numBedroom+"\n");
+			// judge the date validation
 			Date date1 = java.sql.Date.valueOf("1970-01-01");
 			long diff = endDate.getTime() - date1.getTime();
 			long diff2 = startDate.getTime() - date1.getTime();
@@ -78,6 +81,7 @@ public class action implements ActionListener, MouseListener{
 				return;
 			}
 			else if(diff !=0 && diff2!=0)	{
+				//execute the query
 				if(SearchListings(con)!=1) {
 					JOptionPane.showMessageDialog(null, "Search erro!",
 						      "Error", JOptionPane.ERROR_MESSAGE);
@@ -85,9 +89,9 @@ public class action implements ActionListener, MouseListener{
 				}
 			}
 			System.out.print("finished!");
-			
 		}
 		else if(e.getActionCommand().equals("SearchBooking")) {
+			//get the booking informations
 			if(!(gui.getReviewJtf()[0]).getText().equals("")) {
 				userName = gui.getReviewJtf()[0].getText();
 				System.out.println(userName);
@@ -100,6 +104,7 @@ public class action implements ActionListener, MouseListener{
 				 return;
 			}
 			if(!(userName.equals(""))) {
+				//execute query
 				System.out.println(userName);
 				if(SearchBooking(con)!=1) {
 					JOptionPane.showMessageDialog(null, "Search error!",
@@ -107,9 +112,10 @@ public class action implements ActionListener, MouseListener{
 					return;
 				}
 			}
-			gui.GUISearchBooking();
+			gui.removeWriteReview();
 		}
 		else if(e.getActionCommand().equals("Submit")) {
+			//get the review information
 			if(!(gui.getReviewText().getText()).equals("")) {
 				reviewText = gui.getReviewText().getText();
 			}
@@ -119,25 +125,11 @@ public class action implements ActionListener, MouseListener{
 				 reviewText = "";
 				 return;
 			}
-			if(!(gui.getReviewJtf()[1].getText()).equals("")) {
-				currentDate = java.sql.Date.valueOf(gui.getReviewJtf()[1].getText());
-			}
-			else {
-				 JOptionPane.showMessageDialog(null, "Please enter current date!",
-					      "Error", JOptionPane.ERROR_MESSAGE);
-				 currentDate = java.sql.Date.valueOf("1970-01-01");
-				 return;
-			}
-			if(currentDate.getTime()<endDate.getTime()) {
-				 JOptionPane.showMessageDialog(null, "Please review after the last booking day!",
-					      "Error", JOptionPane.ERROR_MESSAGE);
-				 currentDate = java.sql.Date.valueOf("1970-01-01");
-				 return;
-			}
+
 			listingid = Integer.parseInt(gui.getReviewJtf()[2].getText());
-			Date d = java.sql.Date.valueOf("1970-01-01");
-			int temp = ((int) currentDate.getTime()-(int)d.getTime());
-			if(!(reviewText.contentEquals("")) && temp!=0) {
+
+			if(!(reviewText.contentEquals(""))) {
+				// insert the review
 				if(WriteReview(con)!=1) {
 					 JOptionPane.showMessageDialog(null, "Write a review error may due to trigger!",
 						      "Error", JOptionPane.ERROR_MESSAGE);
@@ -149,7 +141,7 @@ public class action implements ActionListener, MouseListener{
 			}
 		}
 		else if(e.getActionCommand().equals("Book")) {
-			
+				//get the book information
     			if(!(gui.bookJtf[1].getText().equals("")))
     				guestName = gui.bookJtf[1].getText();
     			else {
@@ -173,10 +165,12 @@ public class action implements ActionListener, MouseListener{
     			else numberGuest = Integer.parseInt(gui.bookJtf[2].getText());
     			if(numberGuest > 0 && !guestName.contentEquals("")) {
             		System.out.println("BOOK!");
+            		//insert the booking
             		if(BookListings(con,listingid)==1)
             			JOptionPane.showMessageDialog(new JFrame(), "Booking successes!");
             		else JOptionPane.showMessageDialog(new JFrame(), "Booking fails!");
             	}
+    			gui.removeBooingInfo();
     		}
 	}
 	public static int SearchListings(Connection con) {
@@ -208,7 +202,6 @@ public class action implements ActionListener, MouseListener{
 	        ResultSet rs = stmt.executeQuery();
 	
 	        // Iterate through the data in the result set and display it. 
-	        
 	        gui.getListModel().clear();
         	gui.getListModel().addElement("  id   name   descriptor   number of bedroom   total_price ");
 	        while (rs.next()) 
@@ -220,6 +213,7 @@ public class action implements ActionListener, MouseListener{
 	           gui.getListModel().addElement(temp);
 	           
 	        }
+	        //if there is no result, display no searching results
 	        if(count==0)  {
 	        	gui.getListModel().clear();
 	        	gui.getListModel().addElement("Sorry, no searching results!\n");
@@ -232,6 +226,7 @@ public class action implements ActionListener, MouseListener{
 		return 1;
 	}
 	public static int BookListings(Connection con,int listing_id) {
+		// to determine the id
 		String SQL = "select COUNT(*)\r\n" + 
 					 "from Bookings";
 		int id = 0;
@@ -244,6 +239,7 @@ public class action implements ActionListener, MouseListener{
 			e.printStackTrace();
 		}
 		
+		//insert the valid booking
 		SQL = "INSERT INTO dbo.Bookings(id,listing_id,guest_name,stay_from,stay_to,number_of_guests)\r\n" + 
 				"VALUES (?,?,?,?,?,?);";
 		try {
@@ -279,6 +275,7 @@ public class action implements ActionListener, MouseListener{
 		    gui.getReviewListModel().clear();
 	        gui.getReviewListModel().addElement("  listing_id      stay_from     stay_to      number of guest");
 	        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	     // Iterate through the data in the result set and display it.
 		    while (rs.next()) 
 		       { 
 		        	count++;
@@ -288,6 +285,7 @@ public class action implements ActionListener, MouseListener{
 		           gui.getReviewListModel().addElement(temp);
 		           
 		        }
+		    // if there is no result, display no searching result
 		    if(count==0)  {
 		        gui.getReviewListModel().clear();
 		        gui.getReviewListModel().addElement("Sorry, no searching results!\n");
@@ -313,6 +311,7 @@ public class action implements ActionListener, MouseListener{
 			e.printStackTrace();
 			return 0;
 		}
+		//insert valid review
 		System.out.println("Write a review!");
 		SQL = "INSERT INTO dbo.Reviews(listing_id,id,comments,guest_name)\r\n" + 
 					"VALUES (?,?,?,?);"	;
@@ -333,7 +332,8 @@ public class action implements ActionListener, MouseListener{
 		}
 		return 1;
 	}
-	
+
+	// actions for double-clicked on listings
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		// TODO Auto-generated method stub
@@ -344,14 +344,10 @@ public class action implements ActionListener, MouseListener{
             String temp = theList.getModel().getElementAt(index);
             String [] words = temp.split("     ");
             System.out.println("Double-clicked on: " + words[0] + " "+words[1]);
-            JFrame frame = null;
-            int dialogResult = JOptionPane.showConfirmDialog(frame,
-            "Would you like to book " + words[0]+"?","Book a room", JOptionPane.YES_NO_CANCEL_OPTION);
-            if(dialogResult == JOptionPane.YES_OPTION) {
-            	System.out.println("book a room!");
-            	gui.AddBookingInfo(words[0]);
-            	listingid = Integer.parseInt(words[0]);
-            }
+            System.out.println("book a room!");
+            gui.AddBookingInfo(words[0]);
+            listingid = Integer.parseInt(words[0]);
+     
           }
         }
 	}

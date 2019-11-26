@@ -3,15 +3,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
 
+// main class for the project
 public class connect  {
 	public static void main(String[] args)  {
 		Connection con = null;
 		con = ConnectToDB();
-		GUI gui = new GUI(con);
-		
-
+		// generate the GUI 
+		GUI gui = new GUI(con);	
 	}
 	
+	//connect to the asked database
 	public static Connection ConnectToDB() {
 		Connection con = null;
 		try {
@@ -26,6 +27,5 @@ public class connect  {
 		    }
 		return con;
 	}
-	
 	
 }
