@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -31,7 +32,7 @@ public class action implements ActionListener, MouseListener{
 	static GUI gui;
 	Connection con;
 	
-	public action(GUI gui, Connection con) {
+	public action(GUI gui, Connection con) { 
 		this.gui = gui;
 		this.con = con;
 	}
@@ -44,25 +45,65 @@ public class action implements ActionListener, MouseListener{
 		if(e.getActionCommand().equals("Search")) {
 			gui.removeBooingInfo();
 			//get the search information
-			if(!(gui.getjtf()[0]).getText().equals(""))
-				minPrice = Integer.parseInt((gui.getjtf()[0]).getText());
-			else minPrice = -1;
-			if(!(gui.getjtf()[1]).getText().equals(""))
-				maxPrice = Integer.parseInt((gui.getjtf()[1]).getText());
-			else maxPrice = -1;
-			if(!(gui.getjtf()[2]).getText().equals(""))
-			 numBedroom = Integer.parseInt((gui.getjtf()[2]).getText());
-			else numBedroom = -1;
-			if(!(gui.getjtf()[3]).getText().equals(""))
-				startDate = java.sql.Date.valueOf((gui.getjtf()[3]).getText());
+			try {
+				if(!(gui.getjtf()[0]).getText().equals("")) {
+					minPrice = Integer.parseInt((gui.getjtf()[0]).getText());
+					if(minPrice<0) {
+						JOptionPane.showMessageDialog(null, "minPrice should greater than 0!",
+							      "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+				}
+				else minPrice = -1;
+				if(!(gui.getjtf()[1]).getText().equals("")) {
+					maxPrice = Integer.parseInt((gui.getjtf()[1]).getText());
+					if(maxPrice<0) {
+						JOptionPane.showMessageDialog(null, "maxPrice should greater than 0!",
+							      "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+				}
+				else maxPrice = -1;
+				if(!(gui.getjtf()[2]).getText().equals("")) {
+					numBedroom = Integer.parseInt((gui.getjtf()[2]).getText());
+					if(numBedroom<0) {
+						JOptionPane.showMessageDialog(null, "numBedroom should greater than 0!",
+							      "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+				}
+				 
+				else numBedroom = -1;
+			}catch(Exception ee) {
+				JOptionPane.showMessageDialog(null, "please enter a valid number!",
+					      "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			if(!(gui.getjtf()[3]).getText().equals("")) {
+				try {
+					startDate = java.sql.Date.valueOf((gui.getjtf()[3]).getText());
+				}catch (IllegalArgumentException ie) {
+					JOptionPane.showMessageDialog(null, "date format should be yyyy-MM-dd",
+						      "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+			}	
 			else {
 				startDate = java.sql.Date.valueOf("1970-01-01");
 				JOptionPane.showMessageDialog(null, "Please enter start date",
 					      "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			if(!(gui.getjtf()[4]).getText().equals(""))
-				endDate = java.sql.Date.valueOf((gui.getjtf()[4]).getText());
+			if(!(gui.getjtf()[4]).getText().equals("")) {
+				try {
+					endDate = java.sql.Date.valueOf((gui.getjtf()[4]).getText());
+				}catch (IllegalArgumentException ie) {
+					JOptionPane.showMessageDialog(null, "date format should be yyyy-MM-dd",
+						      "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+			}
+	
 			else {
 				endDate = java.sql.Date.valueOf("1970-01-01");
 				JOptionPane.showMessageDialog(null, "Please enter end date",
@@ -75,7 +116,7 @@ public class action implements ActionListener, MouseListener{
 			Date date1 = java.sql.Date.valueOf("1970-01-01");
 			long diff = endDate.getTime() - date1.getTime();
 			long diff2 = startDate.getTime() - date1.getTime();
-			if(endDate.getTime() - startDate.getTime()<=0) {
+			if(endDate.getTime() - startDate.getTime()<0) {
 				JOptionPane.showMessageDialog(null, "Please enter a valid end date and start date!",
 					      "Error", JOptionPane.ERROR_MESSAGE);
 				return;
@@ -131,8 +172,8 @@ public class action implements ActionListener, MouseListener{
 			if(!(reviewText.contentEquals(""))) {
 				// insert the review
 				if(WriteReview(con)!=1) {
-					 JOptionPane.showMessageDialog(null, "Write a review error may due to trigger!",
-						      "Error", JOptionPane.ERROR_MESSAGE);
+					// JOptionPane.showMessageDialog(null, "Write a review error may due to trigger!",
+					//	      "Error", JOptionPane.ERROR_MESSAGE);
 					 return;
 				}
 				else {
@@ -156,13 +197,22 @@ public class action implements ActionListener, MouseListener{
     				numberGuest = -1;
     				return;
     			}
-    			else if(Integer.parseInt(gui.bookJtf[2].getText())<=0){
-    				 JOptionPane.showMessageDialog(null, "Please enter an valid number",
-    					      "Error", JOptionPane.ERROR_MESSAGE);
-    				 numberGuest = -1;
-    				 return;
+    			else {
+    				try{
+    					numberGuest = Integer.parseInt(gui.bookJtf[2].getText());
+    					if(numberGuest<0) {
+    						JOptionPane.showMessageDialog(null, "Please enter an valid number",
+    	    					      "Error", JOptionPane.ERROR_MESSAGE);
+    	    				 numberGuest = -1;
+    	    				 return;
+    					}
+    				}catch(Exception ee) {
+    					JOptionPane.showMessageDialog(null, "Please enter a number",
+      					      "Error", JOptionPane.ERROR_MESSAGE);
+    					return;
+    				}
+    				
     			}
-    			else numberGuest = Integer.parseInt(gui.bookJtf[2].getText());
     			if(numberGuest > 0 && !guestName.contentEquals("")) {
             		System.out.println("BOOK!");
             		//insert the booking
@@ -203,7 +253,8 @@ public class action implements ActionListener, MouseListener{
 	
 	        // Iterate through the data in the result set and display it. 
 	        gui.getListModel().clear();
-        	gui.getListModel().addElement("  id   name   descriptor   number of bedroom   total_price ");
+        	gui.getListModel().addElement("  id                         name                                      descriptor"
+        			+ "      bedroomNum        total_price ");
 	        while (rs.next()) 
 	        { 
 	        	count++;
@@ -326,9 +377,15 @@ public class action implements ActionListener, MouseListener{
 			
 	        stmt.executeUpdate();
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		catch (SQLException e) {
+				String temp =  "Review insert failed!"
+						+ "\nSQL State:" + e.getSQLState()  
+						+ "\tERROR Code:" + e.getErrorCode()
+						+ "\nError Message:" +e.getMessage();
+				JOptionPane.showMessageDialog(null, temp);				
+				e.getNextException();
 			return 0;
+			
 		}
 		return 1;
 	}

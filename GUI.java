@@ -22,10 +22,7 @@ public class GUI extends JFrame{
 	JPanel search = new JPanel();
 	DefaultListModel<String> listModel;
 	JScrollPane scrollPane = new JScrollPane();
-	
-	//for message box
-	JTextField nameField = new JTextField(20);
-    JTextField numberField = new JTextField(5);
+	JTable table;
     
     //for write a review
     JPanel reviewJP[] = new JPanel[3];
@@ -73,7 +70,7 @@ public class GUI extends JFrame{
 		
 		this.setContentPane(options);
 		this.setSize(1000,500);
-		this.setTitle("Search Listings");
+		this.setTitle("Airbnb");
 		this.setLocation(100,200);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setResizable(true);
@@ -132,9 +129,12 @@ public class GUI extends JFrame{
 		}
 		
 		listModel = new DefaultListModel<String>();
-		listModel.addElement("  id   name   descriptor   number of bedroom   total_price ");
+		listModel.addElement("  id           name                descriptor            number of bedroom      total_price ");
 		jlist = new JList<String>(listModel);
+		//String columnNames[] = {"id","name","descriptor","number of bedroom","total_price"};
+		//table = new JTable(null,columnNames);
 		scrollPane.setViewportView(jlist);
+		//scrollPane.add(table);
 		jlist.setLayoutOrientation(JList.VERTICAL);
 		
 		jsplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,search,scrollPane);
@@ -262,20 +262,6 @@ public class GUI extends JFrame{
 		return jta;
 	}
 	
-	// an unused utility function
-	public boolean JOptionPaneMultiInput() {
-
-	      JPanel myPanel = new JPanel();
-	      myPanel.add(new JLabel("Please enter your name:"));
-	      myPanel.add(nameField);
-	      myPanel.add(Box.createHorizontalStrut(15)); // a spacer
-	      myPanel.add(new JLabel("Please enter the number of guests:"));
-	      myPanel.add(numberField);
-
-	      int result = JOptionPane.showConfirmDialog(null, myPanel, 
-	               "Please Enter Information", JOptionPane.OK_CANCEL_OPTION);
-	      return result == JOptionPane.OK_OPTION;
-	}
 	
 }
 
